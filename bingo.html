@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bingo Interactivo</title>
+    <meta name="description" content="Bingo interactivo personalizado con tus propias imágenes">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Chewy&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #FF6B9D;
+            --secondary: #4ECDC4;
+            --tertiary: #FFE66D;
+            --success: #6BCF7F;
+            --dark: #2C3E50;
+            --light: #ECF0F1;
+            --white: #FFFFFF;
+            --shadow: rgba(0, 0, 0, 0.15);
+        }
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            background: var(--white);
+            border-radius: 25px;
+            padding: 25px 35px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 40px var(--shadow);
+            text-align: center;
+        }
+
+        .logo {
+            font-family: 'Chewy', cursive;
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--dark);
+            font-size: 1.1rem;
+            opacity: 0.7;
+        }
+
+        /* Sección de Setup */
+        .setup-section {
+            background: var(--white);
+            border-radius: 25px;
+            padding: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 40px var(--shadow);
+        }
+
+        .setup-section.hidden {
+            display: none;
+        }
+
+        .setup-title {
+            font-size: 1.8rem;
+            color: var(--dark);
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .upload-area {
+            border: 4px dashed var(--secondary);
+            border-radius: 20px;
+            padding: 50px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(135deg, rgba(78, 205, 196, 0.05), rgba(78, 205, 196, 0.15));
+            margin-bottom: 30px;
+        }
+
+        .upload-area:hover {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(255, 107, 157, 0.05), rgba(255, 107, 157, 0.15));
+            transform: scale(1.02);
+        }
+
+        .upload-area input {
+            display: none;
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            font-size: 1.3rem;
+            color: var(--dark);
+            font-weight: 600;
+        }
+
+        .upload-subtext {
+            font-size: 1rem;
+            color: var(--dark);
+            opacity: 0.6;
+            margin-top: 10px;
+        }
+
+        .images-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .preview-item {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px var(--shadow);
+            transition: transform 0.2s ease;
+        }
+
+        .preview-item:hover {
+            transform: scale(1.05);
+        }
+
+        .preview-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .preview-item .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .preview-item:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .size-selector {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .size-selector label {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .size-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .size-btn {
+            padding: 15px 30px;
+            border: 3px solid var(--light);
+            background: white;
+            border-radius: 15px;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .size-btn:hover {
+            border-color: var(--secondary);
+            transform: scale(1.05);
+        }
+
+        .size-btn.active {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .start-btn {
+            padding: 20px 50px;
+            background: linear-gradient(135deg, var(--success), #4CAF50);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 700;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(108, 207, 127, 0.4);
+            transition: all 0.3s ease;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(108, 207, 127, 0.5);
+        }
+
+        .start-btn:active {
+            transform: translateY(0);
+        }
+
+        .start-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Sección del Juego */
+        .game-section {
+            display: none;
+        }
+
+        .game-section.active {
+            display: block;
+        }
+
+        /* Panel de Imágenes Salidas */
+        .drawn-panel {
+            background: var(--white);
+            border-radius: 25px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 40px var(--shadow);
+        }
+
+        .drawn-title {
+            font-size: 1.5rem;
+            color: var(--dark);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .drawn-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 10px;
+            background: var(--light);
+            border-radius: 15px;
+        }
+
+        .drawn-images::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .drawn-images::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        .drawn-images::-webkit-scrollbar-thumb {
+            background: var(--secondary);
+            border-radius: 10px;
+        }
+
+        .drawn-item {
+            aspect-ratio: 1;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            filter: grayscale(100%);
+            opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+
+        .drawn-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .drawn-item.drawn {
+            opacity: 1;
+            filter: grayscale(0%);
+            animation: highlight 0.5s ease;
+        }
+
+        @keyframes highlight {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        /* Área de Sorteo */
+        .draw-area {
+            background: var(--white);
+            border-radius: 25px;
+            padding: 40px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 40px var(--shadow);
+            text-align: center;
+        }
+
+        .draw-display {
+            width: 400px;
+            height: 400px;
+            margin: 0 auto 30px;
+            border-radius: 25px;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(135deg, var(--light), #d5dbde);
+            box-shadow: inset 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .draw-display img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 20px;
+        }
+
+        .carousel-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .carousel-overlay img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 20px;
+            animation: carouselSpin 0.1s linear;
+        }
+
+        @keyframes carouselSpin {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .draw-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 18px 40px;
+            border: none;
+            border-radius: 15px;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 700;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px var(--shadow);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px var(--shadow);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-draw {
+            background: linear-gradient(135deg, var(--primary), #ff8fab);
+            color: white;
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, var(--tertiary), #ffd93d);
+            color: var(--dark);
+        }
+
+        .btn-new {
+            background: linear-gradient(135deg, var(--secondary), #6eddd5);
+            color: white;
+        }
+
+        .status-text {
+            font-size: 1.3rem;
+            color: var(--dark);
+            margin-top: 20px;
+            font-weight: 600;
+        }
+
+        .counter {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            margin-top: 15px;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .draw-display.showing {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @media (max-width: 768px) {
+            .draw-display {
+                width: 300px;
+                height: 300px;
+            }
+
+            .logo {
+                font-size: 2rem;
+            }
+
+            .draw-buttons {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: var(--primary);
+            position: absolute;
+            animation: confettiFall 3s linear;
+        }
+
+        @keyframes confettiFall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .btn-bingo {
+            background: linear-gradient(135deg, #FF0080, #FF8C00);
+            color: white;
+        }
+
+        .bingo-celebration {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            animation: fadeInBg 0.5s ease;
+        }
+
+        .bingo-celebration.active {
+            display: flex;
+        }
+
+        @keyframes fadeInBg {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .bingo-message {
+            background: white;
+            padding: 60px;
+            border-radius: 30px;
+            text-align: center;
+            animation: bounceIn 0.6s ease;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .bingo-text {
+            font-family: 'Chewy', cursive;
+            font-size: 6rem;
+            background: linear-gradient(135deg, #FF0080, #FF8C00, #FFD700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 20px;
+            animation: rainbow 3s linear infinite;
+        }
+
+        @keyframes rainbow {
+            0% {
+                filter: hue-rotate(0deg);
+            }
+
+            100% {
+                filter: hue-rotate(360deg);
+            }
+        }
+
+        .bingo-subtext {
+            font-size: 1.5rem;
+            color: var(--dark);
+            margin-bottom: 30px;
+        }
+
+        .close-celebration {
+            padding: 15px 40px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 700;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .close-celebration:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1 class="logo">🎲 Bingo Interactivo 🎲</h1>
+            <p class="subtitle">¡Sube tus imágenes y crea tu bingo personalizado!</p>
+        </header>
+
+        <!-- Sección de Configuración -->
+        <div class="setup-section" id="setupSection">
+            <h2 class="setup-title">📝 Configurar tu Bingo</h2>
+
+            <div class="upload-area" onclick="document.getElementById('imageUpload').click()">
+                <div class="upload-icon">📤</div>
+                <div class="upload-text">Sube tus imágenes</div>
+                <div class="upload-subtext">Haz clic aquí para seleccionar imágenes (mínimo 9)</div>
+                <input type="file" id="imageUpload" accept="image/*" multiple>
+            </div>
+
+            <div class="images-preview" id="imagesPreview"></div>
+
+            <div class="size-selector">
+                <label>Selecciona el tamaño del bingo:</label>
+                <div class="size-buttons">
+                    <button class="size-btn active" data-size="3" onclick="selectSize(3)">3x3 (9 imágenes)</button>
+                    <button class="size-btn" data-size="4" onclick="selectSize(4)">4x4 (16 imágenes)</button>
+                    <button class="size-btn" data-size="5" onclick="selectSize(5)">5x5 (25 imágenes)</button>
+                    <button class="size-btn" data-size="6" onclick="selectSize(6)">6x6 (36 imágenes)</button>
+                </div>
+            </div>
+
+            <button class="start-btn" id="startBtn" onclick="startGame()" disabled>
+                🎮 ¡Empezar Bingo!
+            </button>
+        </div>
+
+        <!-- Sección del Juego -->
+        <div class="game-section" id="gameSection">
+            <!-- Panel de Imágenes Salidas -->
+            <div class="drawn-panel">
+                <h3 class="drawn-title">📋 Tablero de Control</h3>
+                <div class="drawn-images" id="drawnImages"></div>
+            </div>
+
+            <!-- Área de Sorteo -->
+            <div class="draw-area">
+                <div class="draw-display" id="drawDisplay">
+                    <div
+                        style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--dark); font-size: 1.5rem; opacity: 0.5;">
+                        ¡Presiona "Sortear" para comenzar!
+                    </div>
+                </div>
+
+                <div class="draw-buttons">
+                    <button class="btn btn-draw" id="drawBtn" onclick="drawImage()">
+                        🎰 Sortear
+                    </button>
+                    <button class="btn btn-reset" onclick="resetGame()">
+                        🔄 Reiniciar Sorteo
+                    </button>
+                    <button class="btn btn-new" onclick="newGame()">
+                        🆕 Nuevo Bingo
+                    </button>
+                    <button class="btn btn-bingo" onclick="showBingoCelebration()">
+                        🎉 ¡BINGO! 🎉
+                    </button>
+                </div>
+
+                <div class="status-text" id="statusText"></div>
+                <div class="counter" id="counter"></div>
+            </div>
+
+            <!-- Celebración BINGO -->
+            <div class="bingo-celebration" id="bingoCelebration">
+                <div class="bingo-message">
+                    <div class="bingo-text">¡BINGO!</div>
+                    <div class="bingo-subtext">🎊 ¡Felicidades, has ganado! 🎊</div>
+                    <button class="close-celebration" onclick="closeBingoCelebration()">Cerrar</button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            let uploadedImages = [];
+            let bingoSize = 3;
+            let gameImages = [];
+            let drawnImages = [];
+            let currentImage = null;
+            let isDrawing = false;
+
+            // Crear contexto de audio
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+            // Función para crear sonido de trompeta (más elaborado)
+            function playTrumpetSound() {
+                const now = audioContext.currentTime;
+
+                // Primera nota (Do)
+                playNote(523.25, now, 0.3);
+                // Segunda nota (Mi)
+                playNote(659.25, now + 0.3, 0.3);
+                // Tercera nota (Sol)
+                playNote(783.99, now + 0.6, 0.5);
+
+                function playNote(frequency, startTime, duration) {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+
+                    oscillator.type = 'triangle';
+                    oscillator.frequency.setValueAtTime(frequency, startTime);
+
+                    gainNode.gain.setValueAtTime(0, startTime);
+                    gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.05);
+                    gainNode.gain.linearRampToValueAtTime(0.2, startTime + duration * 0.7);
+                    gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
+
+                    oscillator.start(startTime);
+                    oscillator.stop(startTime + duration);
+                }
+            }
+
+            // Función para reproducir sonido de sorteo
+            // INSTRUCCIONES: Coloca tu archivo MP3 en la misma carpeta que este archivo HTML
+            // y cambia 'sorteo.mp3' por el nombre de tu archivo
+            function playSurpriseSound() {
+                // Opción 1: Usar tu archivo MP3 personalizado
+                const audio = new Audio('sorteo.mp3'); // ← CAMBIA 'sorteo.mp3' por el nombre de tu archivo
+                audio.volume = 0.5; // Volumen (0.0 a 1.0)
+                audio.play().catch(err => {
+                    console.log('No se pudo reproducir el audio:', err);
+                    // Si falla, usa el sonido generado como respaldo
+                    playSurpriseSound_Backup();
+                });
+            }
+
+            // Función de respaldo (sonido generado) por si el MP3 no se encuentra
+            function playSurpriseSound_Backup() {
+                const duration = 0.3;
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.frequency.setValueAtTime(400, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.1);
+                oscillator.frequency.exponentialRampToValueAtTime(600, audioContext.currentTime + duration);
+
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + duration);
+            }
+
+            // Mostrar celebración BINGO
+            function showBingoCelebration() {
+                document.getElementById('bingoCelebration').classList.add('active');
+                playTrumpetSound();
+                createMassiveConfetti();
+            }
+
+            // Cerrar celebración BINGO
+            function closeBingoCelebration() {
+                document.getElementById('bingoCelebration').classList.remove('active');
+            }
+
+            // Crear confetti masivo
+            function createMassiveConfetti() {
+                const colors = ['#FF6B9D', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181', '#AA96DA'];
+
+                for (let i = 0; i < 150; i++) {
+                    setTimeout(() => {
+                        const confetti = document.createElement('div');
+                        confetti.className = 'confetti';
+                        confetti.style.left = Math.random() * 100 + '%';
+                        confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                        confetti.style.animationDelay = Math.random() * 2 + 's';
+                        document.body.appendChild(confetti);
+
+                        setTimeout(() => confetti.remove(), 3000);
+                    }, i * 20);
+                }
+            }
+
+            // Manejar subida de imágenes
+            document.getElementById('imageUpload').addEventListener('change', function (e) {
+                const files = Array.from(e.target.files);
+
+                files.forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function (event) {
+                        uploadedImages.push({
+                            id: Date.now() + Math.random(),
+                            src: event.target.result,
+                            name: file.name
+                        });
+                        updatePreview();
+                        checkStartButton();
+                    };
+                    reader.readAsDataURL(file);
+                });
+            });
+
+            // Actualizar vista previa
+            function updatePreview() {
+                const container = document.getElementById('imagesPreview');
+                container.innerHTML = '';
+
+                uploadedImages.forEach((img, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'preview-item';
+                    div.innerHTML = `
+                    <img src="${img.src}" alt="${img.name}">
+                    <button class="delete-btn" onclick="deleteImage(${index})">×</button>
+                `;
+                    container.appendChild(div);
+                });
+            }
+
+            // Eliminar imagen
+            function deleteImage(index) {
+                uploadedImages.splice(index, 1);
+                updatePreview();
+                checkStartButton();
+            }
+
+            // Seleccionar tamaño
+            function selectSize(size) {
+                bingoSize = size;
+                document.querySelectorAll('.size-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                event.target.classList.add('active');
+                checkStartButton();
+            }
+
+            // Verificar si se puede iniciar
+            function checkStartButton() {
+                const required = bingoSize * bingoSize;
+                const startBtn = document.getElementById('startBtn');
+
+                if (uploadedImages.length >= required) {
+                    startBtn.disabled = false;
+                    startBtn.textContent = `🎮 ¡Empezar Bingo ${bingoSize}x${bingoSize}!`;
+                } else {
+                    startBtn.disabled = true;
+                    startBtn.textContent = `Necesitas ${required - uploadedImages.length} imágenes más`;
+                }
+            }
+
+            // Iniciar juego
+            function startGame() {
+                const required = bingoSize * bingoSize;
+
+                // Seleccionar imágenes para el juego
+                gameImages = [...uploadedImages]
+                    .sort(() => Math.random() - 0.5)
+                    .slice(0, required);
+
+                drawnImages = [];
+                currentImage = null;
+
+                // Ocultar setup, mostrar juego
+                document.getElementById('setupSection').classList.add('hidden');
+                document.getElementById('gameSection').classList.add('active');
+
+                // Inicializar panel de imágenes
+                initDrawnPanel();
+                updateCounter();
+            }
+
+            // Inicializar panel de imágenes (todas en gris)
+            function initDrawnPanel() {
+                const container = document.getElementById('drawnImages');
+                container.innerHTML = '';
+
+                gameImages.forEach((img, index) => {
+                    const div = document.createElement('div');
+                    div.className = 'drawn-item';
+                    div.id = `drawn-${index}`;
+                    div.innerHTML = `<img src="${img.src}" alt="Imagen ${index + 1}">`;
+                    container.appendChild(div);
+                });
+            }
+
+            // Sortear imagen
+            async function drawImage() {
+                if (isDrawing) return;
+
+                isDrawing = true;
+                document.getElementById('drawBtn').disabled = true;
+
+                // Efecto de carrusel
+                await showCarousel();
+
+                // Seleccionar imagen aleatoria
+                // Si quedan imágenes sin salir, elegir de esas; si no, elegir cualquiera
+                const availableIndices = gameImages
+                    .map((img, index) => index)
+                    .filter(index => !drawnImages.includes(index));
+
+                let randomIndex;
+                let selectedImage;
+
+                if (availableIndices.length > 0) {
+                    // Hay imágenes sin salir, elegir de esas
+                    randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+                    selectedImage = gameImages[randomIndex];
+
+                    // Marcar como salida solo si es la primera vez
+                    if (!drawnImages.includes(randomIndex)) {
+                        drawnImages.push(randomIndex);
+                        document.getElementById(`drawn-${randomIndex}`).classList.add('drawn');
+                    }
+                } else {
+                    // Ya salieron todas, elegir cualquier imagen aleatoria
+                    randomIndex = Math.floor(Math.random() * gameImages.length);
+                    selectedImage = gameImages[randomIndex];
+                    document.getElementById('statusText').textContent = '🎉 ¡Todas las imágenes han salido! Sorteando aleatoriamente...';
+                }
+
+                // Reproducir sonido de sorpresa
+                playSurpriseSound();
+
+                // Mostrar imagen seleccionada
+                showSelectedImage(selectedImage, randomIndex);
+
+                updateCounter();
+
+                isDrawing = false;
+                document.getElementById('drawBtn').disabled = false;
+            }
+
+            // Efecto carrusel
+            function showCarousel() {
+                return new Promise((resolve) => {
+                    const display = document.getElementById('drawDisplay');
+                    let iterations = 0;
+                    const maxIterations = 20;
+
+                    const interval = setInterval(() => {
+                        const randomImg = gameImages[Math.floor(Math.random() * gameImages.length)];
+
+                        display.innerHTML = `
+                        <div class="carousel-overlay">
+                            <img src="${randomImg.src}" alt="Sorteo">
+                        </div>
+                    `;
+
+                        iterations++;
+
+                        if (iterations >= maxIterations) {
+                            clearInterval(interval);
+                            resolve();
+                        }
+                    }, 100);
+                });
+            }
+
+            // Mostrar imagen seleccionada
+            function showSelectedImage(image, index) {
+                const display = document.getElementById('drawDisplay');
+                display.classList.add('showing');
+
+                display.innerHTML = `<img src="${image.src}" alt="¡Salió!">`;
+
+                document.getElementById('statusText').textContent = '¡Esta imagen ha salido!';
+
+                setTimeout(() => {
+                    display.classList.remove('showing');
+                }, 500);
+            }
+
+            // Actualizar contador
+            function updateCounter() {
+                const total = gameImages.length;
+                const drawn = drawnImages.length;
+                const remaining = total - drawn;
+
+                document.getElementById('counter').textContent =
+                    `Salidas: ${drawn} / ${total} | Quedan: ${remaining}`;
+            }
+
+            // Reiniciar sorteo (mantener imágenes, empezar a sortear automáticamente)
+            function resetGame() {
+                // Limpiar estado del juego
+                drawnImages = [];
+                currentImage = null;
+                isDrawing = false;
+
+                // Restaurar display
+                document.getElementById('drawDisplay').innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--dark); font-size: 1.5rem; opacity: 0.5;">
+                    ¡Presiona "Sortear" para comenzar!
+                </div>
+            `;
+
+                // Limpiar textos
+                document.getElementById('statusText').textContent = '';
+                document.getElementById('drawBtn').disabled = false;
+
+                // Reinicializar panel (todas las imágenes vuelven a gris)
+                const container = document.getElementById('drawnImages');
+                const items = container.querySelectorAll('.drawn-item');
+                items.forEach(item => {
+                    item.classList.remove('drawn');
+                });
+
+                updateCounter();
+            }
+
+            // Nuevo juego (volver a configuración)
+            function newGame() {
+                // Mostrar setup y ocultar juego
+                document.getElementById('setupSection').classList.remove('hidden');
+                document.getElementById('gameSection').classList.remove('active');
+
+                // Limpiar estado del juego
+                gameImages = [];
+                drawnImages = [];
+                currentImage = null;
+                isDrawing = false;
+
+                // Restaurar botón de sorteo
+                document.getElementById('drawBtn').disabled = false;
+            }
+
+            // Crear confetti
+            function createConfetti() {
+                const colors = ['#FF6B9D', '#4ECDC4', '#FFE66D', '#95E1D3', '#F38181', '#AA96DA'];
+
+                for (let i = 0; i < 50; i++) {
+                    setTimeout(() => {
+                        const confetti = document.createElement('div');
+                        confetti.className = 'confetti';
+                        confetti.style.left = Math.random() * 100 + '%';
+                        confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                        confetti.style.animationDelay = Math.random() * 2 + 's';
+                        document.body.appendChild(confetti);
+
+                        setTimeout(() => confetti.remove(), 3000);
+                    }, i * 30);
+                }
+            }
+        </script>
+</body>
+
+</html>
