@@ -903,43 +903,38 @@
             async function drawImage() {
                 if (isDrawing) return;
 
+                const remaining = gameImages.filter((img, index) => !drawnImages.includes(index));
+
+                if (remaining.length === 0) {
+                    document.getElementById('statusText').textContent = '🎉 ¡Bingo completado!';
+                    document.getElementById('drawBtn').disabled = true;
+                    createConfetti();
+                    return;
+                }
+
                 isDrawing = true;
                 document.getElementById('drawBtn').disabled = true;
 
                 // Efecto de carrusel
                 await showCarousel();
 
-                // Seleccionar imagen aleatoria
-                // Si quedan imágenes sin salir, elegir de esas; si no, elegir cualquiera
+                // Seleccionar imagen aleatoria de las no salidas
                 const availableIndices = gameImages
                     .map((img, index) => index)
                     .filter(index => !drawnImages.includes(index));
 
-                let randomIndex;
-                let selectedImage;
-
-                if (availableIndices.length > 0) {
-                    // Hay imágenes sin salir, elegir de esas
-                    randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
-                    selectedImage = gameImages[randomIndex];
-
-                    // Marcar como salida solo si es la primera vez
-                    if (!drawnImages.includes(randomIndex)) {
-                        drawnImages.push(randomIndex);
-                        document.getElementById(`drawn-${randomIndex}`).classList.add('drawn');
-                    }
-                } else {
-                    // Ya salieron todas, elegir cualquier imagen aleatoria
-                    randomIndex = Math.floor(Math.random() * gameImages.length);
-                    selectedImage = gameImages[randomIndex];
-                    document.getElementById('statusText').textContent = '🎉 ¡Todas las imágenes han salido! Sorteando aleatoriamente...';
-                }
+                const randomIndex = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+                const selectedImage = gameImages[randomIndex];
 
                 // Reproducir sonido de sorpresa
                 playSurpriseSound();
 
                 // Mostrar imagen seleccionada
                 showSelectedImage(selectedImage, randomIndex);
+
+                // Marcar como salida
+                drawnImages.push(randomIndex);
+                document.getElementById(`drawn-${randomIndex}`).classList.add('drawn');
 
                 updateCounter();
 
